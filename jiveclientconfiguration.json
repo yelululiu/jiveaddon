@@ -1,0 +1,10 @@
+{
+    "clientUrl": "http://jiveaddonpoc.ap01.aws.af.cm",
+    "port": "80",
+    "oauth2-sfdc": {
+        "originServerAuthorizationUrl": "https://login.salesforce.com/services/oauth2/authorize",
+        "originServerTokenRequestUrl": "https://login.salesforce.com/services/oauth2/token",
+        "oauth2ConsumerKey": "3MVG9A2kN3Bn17hvqgMmA846dDSfrKMXcaBxBtIz8NIsFTL1H4XG7iW16hHucTZ0H3xkOEEHhRX7JmJdyGprN",
+        "oauth2ConsumerSecret": "7414459926983300431"
+    }
+}

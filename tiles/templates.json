@@ -1,0 +1,11 @@
+{
+    "default": {
+        "name": "defaultTemplate",
+        "displayName": "Contains: [opportunity_detail, opportunity_activity] ",
+        "description": "Extension UUID 47b87687-6a7d-4975-bd8a-451c35527b9c Contains: [opportunity_detail, opportunity_activity] ",
+        "tiles": [
+            "opportunity_detail",
+            "opportunity_activity"
+        ]
+    }
+}

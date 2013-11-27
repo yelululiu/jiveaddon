@@ -1,0 +1,6 @@
+db/
+node_modules/
+
+extension_src/
+
+extension.zip
