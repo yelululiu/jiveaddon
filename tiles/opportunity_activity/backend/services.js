@@ -2,6 +2,7 @@ var jive = require('jive-sdk'),
     q = require('q');
 
 function processTileInstance(instance) {
+            jive.logger.info('processTileInstance:');
     var eventContext = { 'eventListener' :'sfdc', 'instance' : instance };
 
     //
@@ -23,9 +24,12 @@ function processTileInstance(instance) {
 exports.task = new jive.tasks.build(
     // runnable
     function () {
+            jive.logger.info('service.js exports.task:');
+            //jive.logger.info(jive.extstreams.findByDefinitionName('opportunity_activity'));
         jive.extstreams.findByDefinitionName('opportunity_activity').then(function (instances) {
             if (instances) {
                 instances.forEach(function (instance) {
+            jive.logger.info(instance);
                     processTileInstance(instance);
                 });
             }
@@ -33,5 +37,5 @@ exports.task = new jive.tasks.build(
     },
 
     // interval (optional)
-    10000
+    100000
 );

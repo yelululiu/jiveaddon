@@ -19,20 +19,31 @@ var metadataStore = jive.service.persistence();
  */
 exports.pullActivity = function(extstreamInstance) {
 
+            jive.logger.info('pullActivity:');
     return exports.getLastTimePulled(extstreamInstance, 'activity').then(function (lastTimePulled) {
         var opportunityID = extstreamInstance.config.opportunityID;
         var ticketID = extstreamInstance.config.ticketID;
 
-        //First query text posts
-        var queryTextPosts = util.format("SELECT Id, Type, CreatedDate, CreatedBy.Name, Parent.Name, IsDeleted, Body, (SELECT Id, FieldName, OldValue, NewValue" +
-            " FROM FeedTrackedChanges ) FROM OpportunityFeed" +
-            " WHERE ParentId = '%s' AND CreatedDate > %s ORDER BY CreatedDate ASC",
-            opportunityID,
-            getDateString(lastTimePulled));
+        // //First query text posts
+        // var queryTextPosts = util.format("SELECT Id, Type, CreatedDate, CreatedBy.Name, Parent.Name, IsDeleted, Body, (SELECT Id, FieldName, OldValue, NewValue" +
+            // " FROM FeedTrackedChanges ) FROM OpportunityFeed" +
+            // " WHERE ParentId = '%s' AND CreatedDate > %s ORDER BY CreatedDate ASC",
+            // opportunityID,
+            // getDateString(lastTimePulled));
+        // var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
+// 
+        // return sfdc_helpers.querySalesforceV27(ticketID, uri1).then(function (response) {
+            // var entity = response['entity'];
+            // return convertToActivities(entity, lastTimePulled, extstreamInstance);
+        // });
+        
+        var queryTextPosts = util.format("Select Id ,CreatedBy.Name, CreatedDate, Subject, Description FROM Case " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate ASC",        getDateString(lastTimePulled));
         var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
 
         return sfdc_helpers.querySalesforceV27(ticketID, uri1).then(function (response) {
             var entity = response['entity'];
+            jive.logger.info('salesforce response:'+response);
+            jive.logger.info('case results: '+entity);
             return convertToActivities(entity, lastTimePulled, extstreamInstance);
         });
 
@@ -140,12 +151,23 @@ exports.recordSyncFromJive = function(instance, sfCommentID) {
 };
 
 exports.pullOpportunity = function(tileInstance){
+    //case id
     var opportunityID = tileInstance.config.opportunityID;
-    var uri = util.format("/sobjects/Opportunity/%s", opportunityID);
+    // var uri = util.format("/sobjects/Opportunity/%s", opportunityID);
+    var uri = util.format("/sobjects/Case/%s", opportunityID);
     var ticketID = tileInstance.config.ticketID;
 
     return sfdc_helpers.querySalesforceV27(ticketID, uri).then(function(response) {
         var opportunity = response['entity'];
+        jive.logger.info('louie added pullOpportunity response entity:' + opportunity['Id']);
+        for (prop in opportunity) {
+            if (!opportunity.hasOwnProperty(prop)) {
+                //The current property is not a direct property of p
+                continue;
+            }
+            //Do your logic with the property here
+            jive.logger.info('louie added pullOpportunity response entity contain key: ' + prop);
+        }
         return convertToListTileData(opportunity);
     }).catch(function(err){
             jive.logger.error('Error querying salesforce', err);
@@ -158,46 +180,23 @@ exports.pullOpportunity = function(tileInstance){
 function convertToListTileData(opportunity) {
     return {
         data: {
-            "title": opportunity['Name'],
+            "title": opportunity['Subject'],
             "contents": [
 
                 {
-                    "text": util.format("Stage Name: %s", opportunity['StageName']),
-                    "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                    "linkDescription": "Stage Name"
+                    "name": 'Case Number',
+                    "value": opportunity['Id']
                 },
                 {
-                    "text": util.format("Type: %s", opportunity['Type']),
-                    "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                    "linkDescription": "Type"
+                    "name": 'Subject',
+                    "value": opportunity['Subject']
                 },
                 {
-                    "text": util.format("Probability: %s", opportunity['Probability']) + "%",
-                    "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                    "linkDescription": "Close Date"
-                },
-                {
-                    "text": util.format("Amount: $%d", opportunity['Amount']),
-                    "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                    "linkDescription": "Amount"
-                },
-                {
-                    "text": util.format("Expected Revenue: $%d", opportunity['ExpectedRevenue']),
-                    "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                    "linkDescription": "Expected Revenue"
-                },
-                {
-                    "text": util.format("Close Date: %s", opportunity['CloseDate']),
-                    "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                    "linkDescription": "Close Date"
-                },
-                {
-                    "text": new Date().toString().slice(0, 40)
+                    "name": 'Pull Time',
+                    "value": new Date().toString().slice(0, 40)
+                    // "text": new Date().toString().slice(0, 40)
                 }
-            ],
-            "config": {
-                "listStyle": "contentList"
-            }
+            ]
         }
     };
 }
@@ -244,22 +243,22 @@ function convertToComments(entity, lastTimePulled, instance) {
 
 function getActivityJSON(record) {
     var actor = record.CreatedBy && record.CreatedBy.Name || 'Anonymous';
-    var oppName = record.Parent && record.Parent.Name || 'Some Opportunity';
+    var oppName = record.Subject || 'Some Subject';
     var externalID = record.Id;
     var createdDate = new Date(record.CreatedDate).getTime();
 
     var body = null;
-    if (record.Type == 'TextPost') {
-        body = record.Body;
-    }
-    else if (record.Type == 'TrackedChange') {
-        var changes = record.FeedTrackedChanges && record.FeedTrackedChanges.records;
-        if (changes && changes.length > 0) {
-            var lastChange = changes[changes.length - 1];
-            body = actor + ' changed ' + lastChange.FieldName.replace('Opportunity\.', '') + ' from '
-                + lastChange.OldValue + ' to ' + lastChange.NewValue + '.';
-        }
-    }
+    // if (record.Type == 'TextPost') {
+        body = record.Description;
+    // }
+    // else if (record.Type == 'TrackedChange') {
+        // var changes = record.FeedTrackedChanges && record.FeedTrackedChanges.records;
+        // if (changes && changes.length > 0) {
+            // var lastChange = changes[changes.length - 1];
+            // body = actor + ' changed ' + lastChange.FieldName.replace('Opportunity\.', '') + ' from '
+                // + lastChange.OldValue + ' to ' + lastChange.NewValue + '.';
+        // }
+    // }
 
     body = body || 'Empty post';
 
@@ -279,7 +278,7 @@ function getActivityJSON(record) {
                 "url": "http://www.salesforce.com",
                 "image": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
                 "title": oppName,
-                "description": body
+                "description": body 
             },
             "externalID": externalID
         }

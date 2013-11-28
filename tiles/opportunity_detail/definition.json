@@ -1,47 +1,26 @@
 {
     "sampleData": {
-        "title": "Opportunity",
+        "title": "Case",
         "contents": [
             {
-                "text": "Stage Name:",
-                "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                "linkDescription": "Stage Name"
+                "name": "Case Number:",
+                "value": "0001"
             },
             {
-                "text": "Type:",
-                "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                "linkDescription": "Type"
-            },
-            {
-                "text": "Probability: 80%",
-                "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                "linkDescription": "Close Date"
-            },
-            {
-                "text": "Amount: ",
-                "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                "linkDescription": "Amount"
-            },
-            {
-                "text": "Expected Revenue: ",
-                "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                "linkDescription": "Expected Revenue"
-            },
-            {
-                "text": "Close Date: ",
-                "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                "linkDescription": "Close Date"
+                "name": "Description:",
+                "value": "description"
             }
         ],
-        "config": {
-            "listStyle": "contentList"
+        "action": {
+            "text": "test",
+            "url": "url"
         }
     },
-    "displayName": "Detail for an SFDC Opportunity",
+    "displayName": "Detail for an SFDC Case",
     "name": "opportunity_detail",
-    "description": "Opportunity Detail",
-    "config" : "/sfdc/configure",
-    "style": "LIST",
+    "description": "Case Detail",
+    "config" : "/sfdc/caseconfigure",
+    "style": "TABLE",
     "icons": {
         "16": "{{{host}}}/opportunity_detail/images/salesforce.png",
         "48": "{{{host}}}/opportunity_detail/images/salesforce.png",

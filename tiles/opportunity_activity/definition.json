@@ -1,6 +1,6 @@
 {
     "sampleData" : {},
-    "displayName" : "Activity for an SFDC Opportunity",
+    "displayName" : "Activity for an SFDC Case",
     "name" : "opportunity_activity",
     "description" : "Opportunity activity.",
     "config" : "/sfdc/configure",
