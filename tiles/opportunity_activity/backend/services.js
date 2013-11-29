@@ -7,18 +7,18 @@ function processTileInstance(instance) {
 
     //
     // 1. pull activity from SFDC and push to Jive
-    jive.context.scheduler.schedule('sfdcPullActivity', eventContext )
-    .then(function () {
-
-    //
-    // 2. pull comments from SFDC and push to Jive
-        return jive.context.scheduler.schedule('sfdcPullComments', eventContext)
-    }).then(function () {
-
-    //
-    // 3. pull comments from Jive and push to SFDC
-        return jive.context.scheduler.schedule('sfdcPushComments', eventContext)
-    });
+    jive.context.scheduler.schedule('sfdcPullActivity', eventContext );
+    // .then(function () {
+// 
+    // //
+    // // 2. pull comments from SFDC and push to Jive
+        // return jive.context.scheduler.schedule('sfdcPullComments', eventContext)
+    // }).then(function () {
+// 
+    // //
+    // // 3. pull comments from Jive and push to SFDC
+        // return jive.context.scheduler.schedule('sfdcPushComments', eventContext)
+    // });
 }
 
 exports.task = new jive.tasks.build(
@@ -37,5 +37,5 @@ exports.task = new jive.tasks.build(
     },
 
     // interval (optional)
-    100000
+    60000
 );

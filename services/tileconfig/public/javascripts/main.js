@@ -3,7 +3,6 @@ function showCard( cardID, adjustHeight ) {
     $("#" + cardID ).show();
     gadgets.window.adjustHeight(adjustHeight);
 }
-
 function doIt( host ) {
 
     var oauth2SuccessCallback = function(ticketID) {
@@ -19,55 +18,62 @@ function doIt( host ) {
 
             return;
         }
+        var toReturn = {
+            "isSFDC" : true
+        };
+        if ( ticketID ) {
+            toReturn['ticketID'] = ticketID;
+        }
+        jive.tile.close(toReturn );
 
-        var query = encodeURIComponent("SELECT Id, Name, Description, StageName, Amount FROM Opportunity");
-
-        osapi.http.get({
-            'href' : host + '/sfdc/salesforce/query?' +
-                'id=' + ticketID +
-                "&ts=" + new Date().getTime() +
-                "&ticketID=" + ticketID +
-                "&query=" + query,
-            'format' : 'json',
-            'authz': 'signed'
-        }).execute(function( response ) {
-            if ( response.error ) {
-                $("#j-error").text(JSON.stringify(response.error, null, 4));
-                showCard("j-card-rejected");
-                return;
-            }
-
-            showCard("j-card-configuration");
-
-            var config = onLoadContext['config'];
-            var data = response.content;
-
-            $.each( data.records, function() {
-                var record = $(this)[0];
-                var id = record["Id"];
-                var name = record["Name"];
-                var option = $("<option value=" + id + ">" + name + "</option>");
-                $("#select_opportunity").append(option);
-            });
-
-            if ( config["opportunityID"] ) {
-                // set previously selected
-                $("#select_opportunity").val( config["opportunityID"] );
-            }
-
-            $("#btn_done").click( function() {
-                var selected = $("#select_opportunity").val();
-                var toReturn = {
-                    "opportunityID" : selected,
-                    "isSFDC" : true
-                };
-                if ( ticketID ) {
-                    toReturn['ticketID'] = ticketID;
-                }
-
-                jive.tile.close(toReturn );
-            });
-        });
+        // var query = encodeURIComponent("SELECT Id, Name, Description, StageName, Amount FROM Opportunity");
+// 
+        // osapi.http.get({
+            // 'href' : host + '/sfdc/salesforce/query?' +
+                // 'id=' + ticketID +
+                // "&ts=" + new Date().getTime() +
+                // "&ticketID=" + ticketID +
+                // "&query=" + query,
+            // 'format' : 'json',
+            // 'authz': 'signed'
+        // }).execute(function( response ) {
+            // if ( response.error ) {
+                // $("#j-error").text(JSON.stringify(response.error, null, 4));
+                // showCard("j-card-rejected");
+                // return;
+            // }
+// 
+            // showCard("j-card-configuration");
+// 
+            // var config = onLoadContext['config'];
+            // var data = response.content;
+// 
+            // $.each( data.records, function() {
+                // var record = $(this)[0];
+                // var id = record["Id"];
+                // var name = record["Name"];
+                // var option = $("<option value=" + id + ">" + name + "</option>");
+                // $("#select_opportunity").append(option);
+            // });
+// 
+            // if ( config["opportunityID"] ) {
+                // // set previously selected
+                // $("#select_opportunity").val( config["opportunityID"] );
+            // }
+// 
+            // $("#btn_done").click( function() {
+                // var selected = $("#select_opportunity").val();
+                // var toReturn = {
+                    // "opportunityID" : selected,
+                    // "isSFDC" : true
+                // };
+                // if ( ticketID ) {
+                    // toReturn['ticketID'] = ticketID;
+                // }
+// 
+                // jive.tile.close(toReturn );
+            // });
+        // });
     };
 
     var jiveAuthorizeUrlErrorCallback = function(err) {

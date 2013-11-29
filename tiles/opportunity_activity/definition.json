@@ -6,8 +6,8 @@
     "config" : "/sfdc/configure",
     "style" : "ACTIVITY",
     "icons" : {
-        "16": "{{{host}}}/opportunity_activity/images/salesforce.png",
-        "48": "{{{host}}}/opportunity_activity/images/salesforce.png",
-        "128": "{{{host}}}/opportunity_activity/images/salesforce.png"
+        "16": "{{{host}}}/images/salesforce.png",
+        "48": "{{{host}}}/images/salesforce.png",
+        "128": "{{{host}}}/images/salesforce.png"
     }
 }

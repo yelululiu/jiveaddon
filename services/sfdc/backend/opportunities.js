@@ -37,7 +37,8 @@ exports.pullActivity = function(extstreamInstance) {
             // return convertToActivities(entity, lastTimePulled, extstreamInstance);
         // });
         
-        var queryTextPosts = util.format("Select Id ,CreatedBy.Name, CreatedDate, Subject, Description FROM Case " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate ASC",        getDateString(lastTimePulled));
+        // var queryTextPosts = util.format("Select Id ,CreatedBy.Name, CreatedDate, Subject, Description FROM Case " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate ASC",        getDateString(lastTimePulled));
+        var queryTextPosts = util.format("Select Case.Subject, CreatedBy.Name, CreatedDate, Id, Field, IsDeleted, NewValue, OldValue from casehistory     " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate DESC",        getDateString(lastTimePulled));
         var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
 
         return sfdc_helpers.querySalesforceV27(ticketID, uri1).then(function (response) {
@@ -168,7 +169,7 @@ exports.pullOpportunity = function(tileInstance){
             //Do your logic with the property here
             jive.logger.info('louie added pullOpportunity response entity contain key: ' + prop);
         }
-        return convertToListTileData(opportunity);
+        return convertToListTileData(opportunity, ticketID);
     }).catch(function(err){
             jive.logger.error('Error querying salesforce', err);
         });
@@ -177,28 +178,45 @@ exports.pullOpportunity = function(tileInstance){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private
 
-function convertToListTileData(opportunity) {
-    return {
-        data: {
-            "title": opportunity['Subject'],
-            "contents": [
+function convertToListTileData(opportunity, ticketID) {
+    var instance_url = "https://www.salesforce.com";
+    var tokenStore = jive.service.persistence();
+    jive.logger.info('louie added convertToListTileData ticketID: ' + ticketID);
 
-                {
-                    "name": 'Case Number',
-                    "value": opportunity['Id']
-                },
-                {
-                    "name": 'Subject',
-                    "value": opportunity['Subject']
-                },
-                {
-                    "name": 'Pull Time',
-                    "value": new Date().toString().slice(0, 40)
-                    // "text": new Date().toString().slice(0, 40)
-                }
-            ]
-        }
-    };
+    return tokenStore.find('tokens', {'ticket': ticketID }).then( function(found) {
+      if ( found ) {
+            jive.logger.info('louie added convertToListTileData instance_url: ' + found[0]['accessToken']['instance_url']);
+        instance_url = found[0]['accessToken']['instance_url'];
+      }
+    }).then( function(){
+      jive.logger.info('louie added convertToListTileData outside then instance_url: ' + instance_url);
+      return {
+          data: {
+              "title": opportunity['Subject'],
+              "contents": [
+  
+                  {
+                      "name": 'Case Number',
+                      "value": opportunity['CaseNumber']
+                  },
+                  {
+                      "name": 'Subject',
+                      "value": opportunity['Subject']
+                  },
+                  {
+                      "name": 'Pull Time',
+                      "value": new Date().toString().slice(0, 30)
+                      // "text": new Date().toString().slice(0, 40)
+                  },
+                  {
+                      "name": 'Action',
+                      "value": 'Create a new case',
+                      'url': instance_url + '/500/e?retURL=%2F500%2Fo'
+                  }
+              ]
+          }
+      };
+    });
 }
 
 function convertToActivities(entity, lastTimePulled, instance) {
@@ -243,13 +261,21 @@ function convertToComments(entity, lastTimePulled, instance) {
 
 function getActivityJSON(record) {
     var actor = record.CreatedBy && record.CreatedBy.Name || 'Anonymous';
-    var oppName = record.Subject || 'Some Subject';
+    var oppName = record.Case && record.Case.Subject || 'Some Subject';
     var externalID = record.Id;
     var createdDate = new Date(record.CreatedDate).getTime();
-
+    var field = record.Field;
+    var oldValue = record.OldValue || ' ';
+    var newValue = record.NewValue || ' ';
+    
     var body = null;
+    if(field == 'created'){
+      body = "Create New Case: " + oppName;
+    } else {
+      body = "Change " + field + " from " + oldValue + " to " + newValue;
+    }
     // if (record.Type == 'TextPost') {
-        body = record.Description;
+        // body = record.Description;
     // }
     // else if (record.Type == 'TrackedChange') {
         // var changes = record.FeedTrackedChanges && record.FeedTrackedChanges.records;
