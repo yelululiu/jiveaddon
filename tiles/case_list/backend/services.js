@@ -1,12 +1,12 @@
 var jive = require('jive-sdk');
 
-function processTileInstance(instance) {
-    if ( instance['name'] !== 'case_detail') {
+function processCaseListTileInstance(instance) {
+    if ( instance['name'] !== 'case_list') {
         return;
     }
 
     var eventContext = { 'eventListener' :'sfdc', 'instance' : instance };
-    jive.context.scheduler.schedule('sfdcPullOpportunity', eventContext ).then(function (data) {
+    jive.context.scheduler.schedule('sfdcPullCaseList', eventContext ).then(function (data) {
         jive.tiles.pushData(instance, data);
     }).catch(function (err) {
         jive.logger.error('Error pushing salesforce data to Jive', err);
@@ -16,10 +16,10 @@ function processTileInstance(instance) {
 exports.task = new jive.tasks.build(
     // runnable
     function() {
-        jive.tiles.findByDefinitionName( 'case_detail' ).then( function(instances) {
+        jive.tiles.findByDefinitionName( 'case_list' ).then( function(instances) {
             if ( instances ) {
                 instances.forEach( function( instance ) {
-                    processTileInstance(instance);
+                    processCaseListTileInstance(instance);
                 });
             }
         });
@@ -32,11 +32,11 @@ exports.task = new jive.tasks.build(
 exports.eventHandlers = [
     {
         'event' : jive.constants.globalEventNames.INSTANCE_UPDATED,
-        'handler' : processTileInstance
+        'handler' : processCaseListTileInstance
     },
 
     {
         'event' : jive.constants.globalEventNames.NEW_INSTANCE,
-        'handler' : processTileInstance
+        'handler' : processCaseListTileInstance
     }
 ];

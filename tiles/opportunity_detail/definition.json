@@ -17,7 +17,7 @@
         }
     },
     "displayName": "Detail for an SFDC Case",
-    "name": "opportunity_detail",
+    "name": "case_detail",
     "description": "Case Detail",
     "config" : "/sfdc/caseconfigure",
     "style": "TABLE",

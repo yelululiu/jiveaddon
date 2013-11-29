@@ -7,7 +7,7 @@
     <script src="{{{host}}}/tileconfig/javascripts/main.js"></script>
     <script>
         $(document).ready( function() {
-            doIt( '{{{host}}}');
+            caselistdoIt( '{{{host}}}');
         });
     </script>
 </head>
@@ -22,7 +22,34 @@
 </div>
 
 <div id="j-card-loading" class="j-card">
-    <p>Success...</p>
+    <p>Grant access successfully...</p>
+</div>
+
+<div id="j-card-authentication" class="j-card">
+    <p>The remote system (Salesforce) requires you to grant access before proceeding.</p>
+    <button id="oauth">Grant Access</button>
+</div>
+<div id="j-card-configuration" class="j-card">
+    <h2>Configuration</h2>
+
+    <p>
+        Status: 
+        <select id="select_status">
+          <option>New</option>
+          <option>Closed</option>
+          <option>Escalated</option>
+          <option>On Hold</option>
+          <option selected>All</option>
+        </select>
+    </p>
+    <p>
+        Number of cases to show: 
+        <input type="text" value="5" id="number_of_case"/>
+    </p>
+    <p>
+        <button id="btn_done">Close</button>
+    </p>
+
 </div>
 
 <div id="j-card-rejected" class="j-card">
@@ -30,24 +57,6 @@
     <p><pre class="j-error"></pre></p>
     <p>Please cancel and try again later.</p>
     <button class="btn-cancel">Cancel</button>
-</div>
-
-<div id="j-card-authentication" class="j-card">
-    <p>The remote system (Salesforce) requires you to grant access before proceeding.</p>
-    <button id="oauth">Grant Access</button>
-</div>
-
-<div id="j-card-configuration" class="j-card">
-    <h2>Configuration</h2>
-
-    <p>
-        Opportunity
-        <select id="select_opportunity">
-        </select>
-
-        <button id="btn_done">Close</button>
-    </p>
-
 </div>
 
 </body>

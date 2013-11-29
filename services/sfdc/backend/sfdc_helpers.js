@@ -17,7 +17,7 @@ function querySalesforceV27(ticketID, uri){
             var headers = {
                 'Authorization': 'Bearer ' + accessToken
             };
-
+            jive.logger.info('louie added querySalesforceV27 uri: ' + host + SFDC_PREFIX + uri);
             return jive.util.buildRequest(host + SFDC_PREFIX + uri, 'GET', null, headers, null);
         }
 

@@ -1,11 +1,12 @@
 {
     "default": {
         "name": "defaultTemplate",
-        "displayName": "Contains: [opportunity_detail, opportunity_activity] ",
-        "description": "Extension UUID 47b87687-6a7d-4975-bd8a-451c35527b9c Contains: [opportunity_detail, opportunity_activity] ",
+        "displayName": "Contains: [case_detail, case_activity, case_list] ",
+        "description": "Extension UUID 47b87687-6a7d-4975-bd8a-451c35527b9c Contains: [case_detail, case_activity, case_list] ",
         "tiles": [
-            "opportunity_detail",
-            "opportunity_activity"
+            "case_detail",
+            "case_list",
+            "case_activity"
         ]
     }
 }

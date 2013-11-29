@@ -49,6 +49,10 @@ function pullOpportunity(instance) {
     return opportunities.pullOpportunity(instance);
 }
 
+function pullCaseList(instance) {
+    return opportunities.pullCaseList(instance);
+}
+
 
 exports.eventHandlers = [
     {
@@ -76,6 +80,13 @@ exports.eventHandlers = [
         'event' :'sfdcPullOpportunity',
         'handler' : function(context) {
             return pullOpportunity(context['instance']);
+        }
+    },
+
+    {
+        'event' :'sfdcPullCaseList',
+        'handler' : function(context) {
+            return pullCaseList(context['instance']);
         }
     }
 ];

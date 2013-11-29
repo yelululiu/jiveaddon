@@ -2,7 +2,7 @@ var jive = require('jive-sdk'),
     q = require('q');
 
 function processTileInstance(instance) {
-            jive.logger.info('processTileInstance:');
+    jive.logger.info('processTileInstance:');
     var eventContext = { 'eventListener' :'sfdc', 'instance' : instance };
 
     //
@@ -26,7 +26,7 @@ exports.task = new jive.tasks.build(
     function () {
             jive.logger.info('service.js exports.task:');
             //jive.logger.info(jive.extstreams.findByDefinitionName('opportunity_activity'));
-        jive.extstreams.findByDefinitionName('opportunity_activity').then(function (instances) {
+        jive.extstreams.findByDefinitionName('case_activity').then(function (instances) {
             if (instances) {
                 instances.forEach(function (instance) {
             jive.logger.info(instance);

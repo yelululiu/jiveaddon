@@ -24,7 +24,7 @@ function doIt( host ) {
         if ( ticketID ) {
             toReturn['ticketID'] = ticketID;
         }
-        jive.tile.close(toReturn );
+        setTimeout(jive.tile.close(toReturn ), 4000);
 
         // var query = encodeURIComponent("SELECT Id, Name, Description, StageName, Amount FROM Opportunity");
 // 
@@ -213,5 +213,91 @@ function casedoIt( host ) {
         jive.tile.close({});
     });
 
+    OAuth2ServerFlow( options ).launch();
+}
+
+
+function caselistdoIt( host ) {
+
+    var oauth2SuccessCallback = function(ticketID) {
+
+        if ( !ticketID ) {
+            $("#j-card-rejected .j-error").text("Unauthorized");
+            showCard("j-card-rejected");
+
+            $(".btn-cancel").click( function() {
+                jive.tile.close({});
+            });
+
+            return;
+        }
+
+
+
+            showCard("j-card-configuration");
+
+            var config = onLoadContext['config'];
+
+            if ( config["select_status"] ) {
+                // set previously selected
+                $("#select_status").val( config["select_status"] );
+            }
+
+            if ( config["number_of_case"] ) {
+                // set previously selected
+                $("#number_of_case").val( config["number_of_case"] );
+            }
+
+            $("#btn_done").click( function() {
+                var select_status = $("#select_status").val();
+                var number_of_case = $("#number_of_case").val();
+                var toReturn = {
+                    "select_status" : select_status,
+                    "number_of_case" : number_of_case,
+                    "isSFDC" : true
+                };
+                if ( ticketID ) {
+                    toReturn['ticketID'] = ticketID;
+                }
+
+                jive.tile.close(toReturn );
+            });
+    };
+
+    var jiveAuthorizeUrlErrorCallback = function(err) {
+        $("#j-error").text(JSON.stringify(err, null, 4));
+        showCard("j-card-authurl-error");
+    };
+
+    var preOauth2DanceCallback = function() {
+        showCard("j-card-authentication", 200);
+    };
+
+    var onLoadCallback = function( config, identifiers ) {
+        onLoadContext = {
+            config: config,
+            identifiers : identifiers
+        };
+    };
+
+    var options = {
+        serviceHost : host,
+        grantDOMElementID : '#oauth',
+        jiveAuthorizeUrlErrorCallback : jiveAuthorizeUrlErrorCallback,
+        oauth2SuccessCallback : oauth2SuccessCallback,
+        preOauth2DanceCallback : preOauth2DanceCallback,
+        onLoadCallback : onLoadCallback,
+        authorizeUrl : host + '/sfdc/oauth/authorizeUrl'
+    };
+
+    $("#btn_done").click( function() {
+        console.log(onLoadContext);
+    });
+
+    $(".btn-cancel").click( function() {
+        jive.tile.close({});
+    });
+
+        console.log("caselistdoIt");
     OAuth2ServerFlow( options ).launch();
 }

@@ -1,0 +1,30 @@
+{
+    "sampleData": {
+        "title": "Case List",
+        "contents": [
+            {
+                "text": "Case Number: 000000001",
+                "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
+                "linkDescription": "Case Number"
+            },
+            {
+                "text": "Case Number: 000000002",
+                "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
+                "linkDescription": "Case Number"
+            }
+        ],
+        "config": {
+            "listStyle": "contentList"
+        }
+    },
+    "displayName": "Case List",
+    "name": "case_list",
+    "description": "Case List",
+    "config" : "/sfdc/caselist_configure",
+    "style": "LIST",
+    "icons": {
+        "16": "{{{host}}}/images/salesforce.png",
+        "48": "{{{host}}}/images/salesforce.png",
+        "128": "{{{host}}}/images/salesforce.png"
+    }
+}

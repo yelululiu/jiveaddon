@@ -21,7 +21,7 @@ exports.pullActivity = function(extstreamInstance) {
 
             jive.logger.info('pullActivity:');
     return exports.getLastTimePulled(extstreamInstance, 'activity').then(function (lastTimePulled) {
-        var opportunityID = extstreamInstance.config.opportunityID;
+        // var opportunityID = extstreamInstance.config.opportunityID;
         var ticketID = extstreamInstance.config.ticketID;
 
         // //First query text posts
@@ -38,7 +38,7 @@ exports.pullActivity = function(extstreamInstance) {
         // });
         
         // var queryTextPosts = util.format("Select Id ,CreatedBy.Name, CreatedDate, Subject, Description FROM Case " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate ASC",        getDateString(lastTimePulled));
-        var queryTextPosts = util.format("Select Case.Subject, CreatedBy.Name, CreatedDate, Id, Field, IsDeleted, NewValue, OldValue from casehistory     " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate DESC",        getDateString(lastTimePulled));
+        var queryTextPosts = util.format("Select Case.Id, Case.Subject, CreatedBy.Name, CreatedDate, Id, Field, IsDeleted, NewValue, OldValue from casehistory     " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate DESC",        getDateString(lastTimePulled));
         var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
 
         return sfdc_helpers.querySalesforceV27(ticketID, uri1).then(function (response) {
@@ -175,9 +175,65 @@ exports.pullOpportunity = function(tileInstance){
         });
 };
 
+exports.pullCaseList = function(instance){
+  
+    jive.logger.info('louie added pullCaseList:');
+    var ticketID = instance.config.ticketID;
+    var select_status = instance.config.select_status;
+    var number_of_case = instance.config.number_of_case;
+
+    var status_query = select_status == 'All'?'':"where status='" + select_status + "'";
+    var queryTextPosts = util.format("Select CaseNumber, id, status,Subject from case %s ORDER BY CreatedDate DESC limit %s", status_query, number_of_case);
+    var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
+
+    return sfdc_helpers.querySalesforceV27(ticketID, uri1).then(function (response) {
+        var entity = response['entity'];
+        jive.logger.info('salesforce response:'+response);
+        jive.logger.info('case results: '+entity);
+        return convertToCaseListTileData(entity, ticketID);
+    }).catch(function (err) {
+        jive.logger.error('Error querying salesforce', err);
+    });
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private
 
+function convertToCaseListTileData(entity, ticketID) {
+  var cases = entity['records'];
+  var instance_url = "https://www.salesforce.com/";
+  var tokenStore = jive.service.persistence();
+  var case_tile_data = {
+    data: {
+      "title": 'Case List',
+      "contents": [],
+      "config": {
+                "listStyle": "contentList"
+      }
+    }
+  }
+  
+  return tokenStore.find('tokens', {'ticket': ticketID }).then( function(found) {
+    if ( found ) {
+          jive.logger.info('louie added convertToListTileData instance_url: ' + found[0]['accessToken']['instance_url']);
+      instance_url = found[0]['accessToken']['instance_url'] + "/";
+    }
+    
+    cases.forEach(function(case_item){
+      jive.logger.info('louie added convertToCaseListTileData case_item: ' + case_item);
+      var case_id = case_item['Id'];
+      case_tile_data['data']['contents'].push({
+        "text":"Case: " + case_item['CaseNumber'],
+        "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
+        "linkDescription": case_item['Subject'].slice(0, 40),
+        "action": {
+            "url": instance_url + case_id.slice(0, case_id.length - 3)
+        }
+      });
+    });
+    return case_tile_data;
+  })
+}
 function convertToListTileData(opportunity, ticketID) {
     var instance_url = "https://www.salesforce.com";
     var tokenStore = jive.service.persistence();
@@ -222,7 +278,8 @@ function convertToListTileData(opportunity, ticketID) {
 function convertToActivities(entity, lastTimePulled, instance) {
     var records = entity['records'];
     var activities = records.map(function (record) {
-        var json = getActivityJSON(record);
+        var json = getActivityJSON(record, instance);
+        jive.logger.info("louie added convertToActivities json:" + json);
         if (!isNaN(json['sfdcCreatedDate'])) {
             lastTimePulled = Math.max(lastTimePulled, json['sfdcCreatedDate']);
         }
@@ -259,10 +316,14 @@ function convertToComments(entity, lastTimePulled, instance) {
     });
 }
 
-function getActivityJSON(record) {
+function getActivityJSON(record, instance) {
     var actor = record.CreatedBy && record.CreatedBy.Name || 'Anonymous';
     var oppName = record.Case && record.Case.Subject || 'Some Subject';
     var externalID = record.Id;
+    var instance_url = "https://www.salesforce.com/";
+    var tokenStore = jive.service.persistence();
+    var ticketID = instance.config.ticketID;
+    var case_id = record.Case.Id;
     var createdDate = new Date(record.CreatedDate).getTime();
     var field = record.Field;
     var oldValue = record.OldValue || ' ';
@@ -274,41 +335,37 @@ function getActivityJSON(record) {
     } else {
       body = "Change " + field + " from " + oldValue + " to " + newValue;
     }
-    // if (record.Type == 'TextPost') {
-        // body = record.Description;
-    // }
-    // else if (record.Type == 'TrackedChange') {
-        // var changes = record.FeedTrackedChanges && record.FeedTrackedChanges.records;
-        // if (changes && changes.length > 0) {
-            // var lastChange = changes[changes.length - 1];
-            // body = actor + ' changed ' + lastChange.FieldName.replace('Opportunity\.', '') + ' from '
-                // + lastChange.OldValue + ' to ' + lastChange.NewValue + '.';
-        // }
-    // }
 
     body = body || 'Empty post';
+    
+    // return tokenStore.find('tokens', {'ticket': ticketID }).then( function(found) {
+      // if ( found ) {
+        // jive.logger.info('louie added convertToListTileData instance_url: ' + found[0]['accessToken']['instance_url']);
+        // instance_url = found[0]['accessToken']['instance_url'] + "/";
+      // }
 
-    return {
-        "sfdcCreatedDate": createdDate,
-        "activity": {
-            "action": {
-                "name": "posted",
-                "description": body
-            },
-            "actor": {
-                "name": actor,
-                "email": "actor@email.com"
-            },
-            "object": {
-                "type": "website",
-                "url": "http://www.salesforce.com",
-                "image": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
-                "title": oppName,
-                "description": body 
-            },
-            "externalID": externalID
-        }
-    }
+      return {
+          "sfdcCreatedDate": createdDate,
+          "activity": {
+              "action": {
+                  "name": "posted",
+                  "description": body
+              },
+              "actor": {
+                  "name": actor,
+                  "email": ""
+              },
+              "object": {
+                  "type": "website",
+                  "url": instance_url + case_id.slice(0, case_id.length - 3),
+                  "image": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
+                  "title": oppName,
+                  "description": body 
+              },
+              "externalID": externalID
+          }
+      };
+    // });
 }
 
 function getCommentJSON(record) {
