@@ -155,11 +155,12 @@ exports.pullOpportunity = function(tileInstance){
     //case id
     var opportunityID = tileInstance.config.opportunityID;
     // var uri = util.format("/sobjects/Opportunity/%s", opportunityID);
-    var uri = util.format("/sobjects/Case/%s", opportunityID);
+    var queryTextPosts = util.format("Select Id, CaseNumber, Subject, Account.Name, Contact.Name, Reason, Status, Priority from case where id='%s'", opportunityID);
+    var uri = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
     var ticketID = tileInstance.config.ticketID;
 
     return sfdc_helpers.querySalesforceV27(ticketID, uri).then(function(response) {
-        var opportunity = response['entity'];
+        var opportunity = response['entity']['records'][0];
         jive.logger.info('louie added pullOpportunity response entity:' + opportunity['Id']);
         for (prop in opportunity) {
             if (!opportunity.hasOwnProperty(prop)) {
@@ -235,14 +236,15 @@ function convertToCaseListTileData(entity, ticketID) {
   })
 }
 function convertToListTileData(opportunity, ticketID) {
-    var instance_url = "https://www.salesforce.com";
+    var instance_url = "https://www.salesforce.com/";
+    var case_id = opportunity['Id'];
     var tokenStore = jive.service.persistence();
     jive.logger.info('louie added convertToListTileData ticketID: ' + ticketID);
 
     return tokenStore.find('tokens', {'ticket': ticketID }).then( function(found) {
       if ( found ) {
             jive.logger.info('louie added convertToListTileData instance_url: ' + found[0]['accessToken']['instance_url']);
-        instance_url = found[0]['accessToken']['instance_url'];
+        instance_url = found[0]['accessToken']['instance_url'] + "/";
       }
     }).then( function(){
       jive.logger.info('louie added convertToListTileData outside then instance_url: ' + instance_url);
@@ -253,17 +255,41 @@ function convertToListTileData(opportunity, ticketID) {
   
                   {
                       "name": 'Case Number',
-                      "value": opportunity['CaseNumber']
+                      "value": opportunity['CaseNumber'],
+                      'url': instance_url  + case_id.slice(0, case_id.length - 3),
                   },
                   {
                       "name": 'Subject',
-                      "value": opportunity['Subject']
+                      "value": opportunity['Subject'].slice(0, 40)
                   },
                   {
-                      "name": 'Pull Time',
-                      "value": new Date().toString().slice(0, 30)
+                      "name": 'Account',
+                      "value": opportunity.Account.Name.slice(0, 40)
                       // "text": new Date().toString().slice(0, 40)
                   },
+                  {
+                      "name": 'Contact',
+                      "value": opportunity.Contact.Name.slice(0, 40)
+                      // "text": new Date().toString().slice(0, 40)
+                  },
+                  {
+                      "name": 'Reason',
+                      "value": opportunity["Reason"] == null? '':opportunity["Reason"].slice(0, 40)
+                      // "text": new Date().toString().slice(0, 40)
+                  },
+                  {
+                      "name": 'Status',
+                      "value": opportunity['Status']
+                  },
+                  {
+                      "name": 'Priority',
+                      "value": opportunity['Priority']
+                  },
+                  // {
+                      // "name": 'Pull Time',
+                      // "value": new Date().toString().slice(0, 30)
+                      // // "text": new Date().toString().slice(0, 40)
+                  // },
                   {
                       "name": 'Action',
                       "value": 'Create a new case',
