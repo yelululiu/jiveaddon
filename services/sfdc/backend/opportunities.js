@@ -30,7 +30,7 @@ exports.pullActivity = function(extstreamInstance) {
     }
     return exports.getLastTimePulled(extstreamInstance, 'activity').then(function (lastTimePulled) {
         // var queryTextPosts = util.format("Select Id ,CreatedBy.Name, CreatedDate, Subject, Description FROM Case " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate ASC",        getDateString(lastTimePulled));
-        var queryTextPosts = util.format("Select Case.Id, Case.Subject, CreatedBy.Name, CreatedDate, Id, Field, IsDeleted, NewValue, OldValue from casehistory     " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate DESC",        getDateString(lastTimePulled));
+        var queryTextPosts = util.format("Select Case.Id, Case.Subject, CreatedBy.Name, CreatedBy.Email, CreatedDate, Id, Field, IsDeleted, NewValue, OldValue from casehistory     " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate DESC",        getDateString(lastTimePulled));
         var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
 
         return sfdc_helpers.querySalesforceV27(ticketID, uri1).then(function (response) {
@@ -342,6 +342,7 @@ function getActivityJSON(record, instance, instance_url) {
     var field = record.Field;
     var oldValue = record.OldValue || ' ';
     var newValue = record.NewValue || ' ';
+    var email = record.CreatedBy && record.CreatedBy.Email || 'Anonymous@Anonymous.com';
     
     var body = null;
     if(field == 'created'){
@@ -367,7 +368,7 @@ function getActivityJSON(record, instance, instance_url) {
               },
               "actor": {
                   "name": actor,
-                  "email": "actor@test.com"
+                  "email": email
               },
               "object": {
                   "type": "website",
