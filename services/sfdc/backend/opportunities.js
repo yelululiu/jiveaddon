@@ -265,17 +265,14 @@ function convertToListTileData(opportunity, ticketID) {
                   {
                       "name": 'Account',
                       "value": opportunity.Account.Name.slice(0, 40)
-                      // "text": new Date().toString().slice(0, 40)
                   },
                   {
                       "name": 'Contact',
                       "value": opportunity.Contact.Name.slice(0, 40)
-                      // "text": new Date().toString().slice(0, 40)
                   },
                   {
                       "name": 'Reason',
                       "value": opportunity["Reason"] == null? '':opportunity["Reason"].slice(0, 40)
-                      // "text": new Date().toString().slice(0, 40)
                   },
                   {
                       "name": 'Status',
@@ -284,18 +281,17 @@ function convertToListTileData(opportunity, ticketID) {
                   {
                       "name": 'Priority',
                       "value": opportunity['Priority']
-                  },
+                  }
                   // {
                       // "name": 'Pull Time',
                       // "value": new Date().toString().slice(0, 30)
                       // // "text": new Date().toString().slice(0, 40)
                   // },
-                  {
-                      "name": 'Action',
-                      "value": 'Create a new case',
-                      'url': instance_url + '/500/e?retURL=%2F500%2Fo'
-                  }
-              ]
+              ],
+              "action" : {
+                  "text" : "Create a new case",
+                  "url" : instance_url + '500/e?retURL=%2F500%2Fo'
+              }
           }
       };
     });

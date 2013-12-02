@@ -2,17 +2,38 @@
     "sampleData": {
         "title": "Case",
         "contents": [
-            {
-                "name": "Case Number:",
-                "value": "0001"
-            },
-            {
-                "name": "Description:",
-                "value": "description"
-            }
+  
+                  {
+                      "name": 'Case Number',
+                      "value": '00000000101'
+                  },
+                  {
+                      "name": 'Subject',
+                      "value": 'Our Widgets have not been delivered'
+                  },
+                  {
+                      "name": 'Account',
+                      "value": 'Walmart'
+                  },
+                  {
+                      "name": 'Contact',
+                      "value": 'Andy'
+                  },
+                  {
+                      "name": 'Reason',
+                      "value": 'Design has not been dertermined'
+                  },
+                  {
+                      "name": 'Status',
+                      "value": 'New'
+                  },
+                  {
+                      "name": 'Priority',
+                      "value": 'Low'
+                  }
         ],
         "action": {
-            "text": "test",
+            "text": "Create a new case",
             "url": "url"
         }
     },
