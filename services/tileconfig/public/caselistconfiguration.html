@@ -43,6 +43,26 @@
         </select>
     </p>
     <p>
+        Priority: 
+        <select id="select_priority">
+          <option>Hign</option>
+          <option>Medium</option>
+          <option>Low</option>
+          <option selected>All</option>
+        </select>
+    </p>
+    <p>
+        Sort by: 
+        <select id="select_order_by">
+          <option value='Priority'>Priority</option>
+          <option value='LastModifiedDate' selected>Last Modified Date</option>
+        </select> &nbsp;
+        <select id="select_sort">
+          <option value='ASC'>Ascending</option>
+          <option value='DESC' selected>Descending</option>
+        </select>
+    </p>
+    <p>
         Number of cases to show: 
         <input type="text" value="5" id="number_of_case"/>
     </p>

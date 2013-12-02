@@ -1,41 +1,37 @@
 {
     "sampleData": {
-        "title": "Case",
+        "title": "Case Detail",
         "contents": [
   
                   {
-                      "name": 'Case Number',
-                      "value": '00000000101'
+                      "name": "Case Number",
+                      "value": "00000000101"
                   },
                   {
-                      "name": 'Subject',
-                      "value": 'Our Widgets have not been delivered'
+                      "name": "Subject",
+                      "value": "Our Widgets have not been delivered"
                   },
                   {
-                      "name": 'Account',
-                      "value": 'Walmart'
+                      "name": "Account",
+                      "value": "Walmart"
                   },
                   {
-                      "name": 'Contact',
-                      "value": 'Andy'
+                      "name": "Contact",
+                      "value": "Andy"
                   },
                   {
-                      "name": 'Reason',
-                      "value": 'Design has not been dertermined'
+                      "name": "Reason",
+                      "value": "Design has not been dertermined"
                   },
                   {
-                      "name": 'Status',
-                      "value": 'New'
+                      "name": "Status",
+                      "value": "New"
                   },
                   {
-                      "name": 'Priority',
-                      "value": 'Low'
+                      "name": "Priority",
+                      "value": "Low"
                   }
-        ],
-        "action": {
-            "text": "Create a new case",
-            "url": "url"
-        }
+        ]
     },
     "displayName": "Detail for an SFDC Case",
     "name": "case_detail",

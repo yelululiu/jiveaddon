@@ -243,6 +243,21 @@ function caselistdoIt( host ) {
                 $("#select_status").val( config["select_status"] );
             }
 
+            if ( config["select_priority"] ) {
+                // set previously selected
+                $("#select_priority").val( config["select_priority"] );
+            }
+
+            if ( config["select_order_by"] ) {
+                // set previously selected
+                $("#select_order_by").val( config["select_order_by"] );
+            }
+
+            if ( config["select_sort"] ) {
+                // set previously selected
+                $("#select_sort").val( config["select_sort"] );
+            }
+
             if ( config["number_of_case"] ) {
                 // set previously selected
                 $("#number_of_case").val( config["number_of_case"] );
@@ -250,9 +265,15 @@ function caselistdoIt( host ) {
 
             $("#btn_done").click( function() {
                 var select_status = $("#select_status").val();
+                var select_priority = $("#select_priority").val();
+                var select_order_by = $("#select_order_by").val();
+                var select_sort = $("#select_sort").val();
                 var number_of_case = $("#number_of_case").val();
                 var toReturn = {
                     "select_status" : select_status,
+                    "select_priority" : select_priority,
+                    "select_order_by" : select_order_by,
+                    "select_sort" : select_sort,
                     "number_of_case" : number_of_case,
                     "isSFDC" : true
                 };

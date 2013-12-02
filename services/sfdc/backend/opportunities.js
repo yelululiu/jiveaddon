@@ -19,24 +19,16 @@ var metadataStore = jive.service.persistence();
  */
 exports.pullActivity = function(extstreamInstance) {
 
-            jive.logger.info('pullActivity:');
+  jive.logger.info('pullActivity:');
+  var instance_url = "https://www.salesforce.com/";
+  var tokenStore = jive.service.persistence();
+  var ticketID = extstreamInstance.config.ticketID;
+  return tokenStore.find('tokens', {'ticket': ticketID }).then( function(found) {
+    if ( found ) {
+      jive.logger.info('louie added pullActivity instance_url: ' + found[0]['accessToken']['instance_url']);
+      instance_url = found[0]['accessToken']['instance_url'] + "/";
+    }
     return exports.getLastTimePulled(extstreamInstance, 'activity').then(function (lastTimePulled) {
-        // var opportunityID = extstreamInstance.config.opportunityID;
-        var ticketID = extstreamInstance.config.ticketID;
-
-        // //First query text posts
-        // var queryTextPosts = util.format("SELECT Id, Type, CreatedDate, CreatedBy.Name, Parent.Name, IsDeleted, Body, (SELECT Id, FieldName, OldValue, NewValue" +
-            // " FROM FeedTrackedChanges ) FROM OpportunityFeed" +
-            // " WHERE ParentId = '%s' AND CreatedDate > %s ORDER BY CreatedDate ASC",
-            // opportunityID,
-            // getDateString(lastTimePulled));
-        // var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
-// 
-        // return sfdc_helpers.querySalesforceV27(ticketID, uri1).then(function (response) {
-            // var entity = response['entity'];
-            // return convertToActivities(entity, lastTimePulled, extstreamInstance);
-        // });
-        
         // var queryTextPosts = util.format("Select Id ,CreatedBy.Name, CreatedDate, Subject, Description FROM Case " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate ASC",        getDateString(lastTimePulled));
         var queryTextPosts = util.format("Select Case.Id, Case.Subject, CreatedBy.Name, CreatedDate, Id, Field, IsDeleted, NewValue, OldValue from casehistory     " +  " WHERE  CreatedDate > %s ORDER BY CreatedDate DESC",        getDateString(lastTimePulled));
         var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
@@ -45,12 +37,13 @@ exports.pullActivity = function(extstreamInstance) {
             var entity = response['entity'];
             jive.logger.info('salesforce response:'+response);
             jive.logger.info('case results: '+entity);
-            return convertToActivities(entity, lastTimePulled, extstreamInstance);
+            return convertToActivities(entity, lastTimePulled, extstreamInstance, instance_url);
         });
 
     }).catch(function (err) {
         jive.logger.error('Error querying salesforce', err);
     });
+  });
 };
 
 /**
@@ -155,21 +148,21 @@ exports.pullOpportunity = function(tileInstance){
     //case id
     var opportunityID = tileInstance.config.opportunityID;
     // var uri = util.format("/sobjects/Opportunity/%s", opportunityID);
-    var queryTextPosts = util.format("Select Id, CaseNumber, Subject, Account.Name, Contact.Name, Reason, Status, Priority from case where id='%s'", opportunityID);
+    var queryTextPosts = util.format("Select Id, CaseNumber, Subject, Account.Name, Contact.Name, Description, Status, Priority from case where id='%s'", opportunityID);
     var uri = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
     var ticketID = tileInstance.config.ticketID;
 
     return sfdc_helpers.querySalesforceV27(ticketID, uri).then(function(response) {
         var opportunity = response['entity']['records'][0];
-        jive.logger.info('louie added pullOpportunity response entity:' + opportunity['Id']);
-        for (prop in opportunity) {
-            if (!opportunity.hasOwnProperty(prop)) {
-                //The current property is not a direct property of p
-                continue;
-            }
-            //Do your logic with the property here
-            jive.logger.info('louie added pullOpportunity response entity contain key: ' + prop);
-        }
+        // jive.logger.info('louie added pullOpportunity response entity:' + opportunity['Id']);
+        // for (prop in opportunity) {
+            // if (!opportunity.hasOwnProperty(prop)) {
+                // //The current property is not a direct property of p
+                // continue;
+            // }
+            // //Do your logic with the property here
+            // jive.logger.info('louie added pullOpportunity response entity contain key: ' + prop);
+        // }
         return convertToListTileData(opportunity, ticketID);
     }).catch(function(err){
             jive.logger.error('Error querying salesforce', err);
@@ -181,10 +174,14 @@ exports.pullCaseList = function(instance){
     jive.logger.info('louie added pullCaseList:');
     var ticketID = instance.config.ticketID;
     var select_status = instance.config.select_status;
+    var select_priority = instance.config.select_priority;
+    var select_order_by = instance.config.select_order_by;
+    var select_sort = instance.config.select_sort;
     var number_of_case = instance.config.number_of_case;
 
-    var status_query = select_status == 'All'?'':"where status='" + select_status + "'";
-    var queryTextPosts = util.format("Select CaseNumber, id, status,Subject from case %s ORDER BY CreatedDate DESC limit %s", status_query, number_of_case);
+    var status_query = select_status == 'All'?'':"and Status='" + select_status + "'";
+    var priority_query = select_priority == 'All'?'':"and Priority='" + select_priority + "'";
+    var queryTextPosts = util.format("Select CaseNumber, Id, Status, Subject from case where Case.Id>'' %s %s ORDER BY %s %s limit %s", status_query, priority_query, select_order_by, select_sort, number_of_case);
     var uri1 = util.format("/query?q=%s", encodeURIComponent(queryTextPosts));
 
     return sfdc_helpers.querySalesforceV27(ticketID, uri1).then(function (response) {
@@ -196,7 +193,6 @@ exports.pullCaseList = function(instance){
         jive.logger.error('Error querying salesforce', err);
     });
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private
 
@@ -223,9 +219,10 @@ function convertToCaseListTileData(entity, ticketID) {
     cases.forEach(function(case_item){
       jive.logger.info('louie added convertToCaseListTileData case_item: ' + case_item);
       var case_id = case_item['Id'];
+      var case_content = case_item['CaseNumber'] + " [" + case_item['Status'] + "] " + case_item['Subject'];
       case_tile_data['data']['contents'].push({
-        "text":"Case: " + case_item['CaseNumber'],
-        "icon": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
+        "text": case_content.slice(0, 40),
+        "icon": "http://www.sfdcstatic.com/common/assets/img/logo-company.png",
         "linkDescription": case_item['Subject'].slice(0, 40),
         "action": {
             "url": instance_url + case_id.slice(0, case_id.length - 3)
@@ -250,7 +247,7 @@ function convertToListTileData(opportunity, ticketID) {
       jive.logger.info('louie added convertToListTileData outside then instance_url: ' + instance_url);
       return {
           data: {
-              "title": opportunity['Subject'],
+              "title": "Case Details",
               "contents": [
   
                   {
@@ -271,8 +268,8 @@ function convertToListTileData(opportunity, ticketID) {
                       "value": opportunity.Contact.Name.slice(0, 40)
                   },
                   {
-                      "name": 'Reason',
-                      "value": opportunity["Reason"] == null? '':opportunity["Reason"].slice(0, 40)
+                      "name": 'Description',
+                      "value": opportunity["Description"] == null? '':opportunity["Description"].slice(0, 40)
                   },
                   {
                       "name": 'Status',
@@ -287,20 +284,16 @@ function convertToListTileData(opportunity, ticketID) {
                       // "value": new Date().toString().slice(0, 30)
                       // // "text": new Date().toString().slice(0, 40)
                   // },
-              ],
-              "action" : {
-                  "text" : "Create a new case",
-                  "url" : instance_url + '500/e?retURL=%2F500%2Fo'
-              }
+              ]
           }
       };
     });
 }
 
-function convertToActivities(entity, lastTimePulled, instance) {
+function convertToActivities(entity, lastTimePulled, instance, instance_url) {
     var records = entity['records'];
     var activities = records.map(function (record) {
-        var json = getActivityJSON(record, instance);
+        var json = getActivityJSON(record, instance, instance_url);
         jive.logger.info("louie added convertToActivities json:" + json);
         if (!isNaN(json['sfdcCreatedDate'])) {
             lastTimePulled = Math.max(lastTimePulled, json['sfdcCreatedDate']);
@@ -338,11 +331,10 @@ function convertToComments(entity, lastTimePulled, instance) {
     });
 }
 
-function getActivityJSON(record, instance) {
+function getActivityJSON(record, instance, instance_url) {
     var actor = record.CreatedBy && record.CreatedBy.Name || 'Anonymous';
     var oppName = record.Case && record.Case.Subject || 'Some Subject';
     var externalID = record.Id;
-    var instance_url = "https://www.salesforce.com/";
     var tokenStore = jive.service.persistence();
     var ticketID = instance.config.ticketID;
     var case_id = record.Case.Id;
@@ -375,12 +367,12 @@ function getActivityJSON(record, instance) {
               },
               "actor": {
                   "name": actor,
-                  "email": ""
+                  "email": "actor@test.com"
               },
               "object": {
                   "type": "website",
                   "url": instance_url + case_id.slice(0, case_id.length - 3),
-                  "image": "http://farm6.staticflickr.com/5106/5678094118_a78e6ff4e7.jpg",
+                  "image": "http://www.sfdcstatic.com/common/assets/img/logo-company.png",
                   "title": oppName,
                   "description": body 
               },

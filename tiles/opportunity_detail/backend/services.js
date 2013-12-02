@@ -26,7 +26,7 @@ exports.task = new jive.tasks.build(
     },
 
     // interval (optional)
-    10000
+    20000
 );
 
 exports.eventHandlers = [
