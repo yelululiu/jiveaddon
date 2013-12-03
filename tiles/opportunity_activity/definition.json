@@ -1,8 +1,8 @@
 {
     "sampleData" : {},
-    "displayName" : "Case Sctream",
+    "displayName" : "Case Stream",
     "name" : "case_activity",
-    "description" : "Case activity.",
+    "description" : "Pull case updates into your Activity stream. Requires a Salesforce account.",
     "config" : "/sfdc/configure",
     "style" : "ACTIVITY",
     "icons" : {
